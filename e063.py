@@ -1,0 +1,1 @@
+print(sum(len(str(i**j)) == j for i in xrange(1,50) for j in xrange(1, 50)))
