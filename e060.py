@@ -1,72 +1,27 @@
-from math import floor, sqrt, log10
+import numpy as np
 
-partialLimit = 10000    # guess that the largest single prime is less than 10000
-limit = 100000000   # greater than 9999 concatenated with 9999
+def sieve(n):
+    sieve = np.ones(n, dtype=bool)
+    sieve[::2] = False
+    sieve[1] = False
+    for i in (i for i in range(3,int(n**0.5)+1,2) if sieve[i]):
+        sieve[i*i::2*i] = False
+    return np.flatnonzero(sieve)
 
-def display(self):
-    return description
+primes, large_primes = sieve(10**4), set(sieve(10**8))
+primes_strings = [str(p) for p in primes]
+L = len(primes)
 
-def isPrimePair(primeSet,m,n):
-    return (10**(int(floor(log10(m)))+1)*n+m in primeSet and
-    10**(int(floor(log10(n)))+1)*m+n in primeSet)
+prime_twins = [{j for j in range(1,i) if int(primes_strings[i]+primes_strings[j]) in large_primes and
+                                        int(primes_strings[j]+primes_strings[i]) in large_primes}
+               for i in range(L)]
 
-def solve(self):
-    # create sieve
-    sieveLimit = (limit-1) / 2
-    sieve = [False] * sieveLimit
-    crossLimit = int((floor(sqrt(limit)) - 1) / 2)
-    for i in range(1, crossLimit):
-    if not sieve[i]:
-            j = 2*i*(i+1)
-        while j < sieveLimit:
-            sieve[j] = True
-            j += 2*i+1
-
-    # turn the sieve into a list
-    primes = []
-    for i in range(1, sieveLimit):
-    if not sieve[i]:
-        p = 2*i+1
-        primes.append(p)
-
-    # creating set from list for quick membership testing
-    primeSet = set(primes)
-
-    # check all prime pairs only once per pair and store the results
-    #   the dictionary key is the prime
-    #   the dictionary value is a set of all larger primes that are pairs
-    primeLists = {}
-    for a in range(partialLimit):
-    primeLists[primes[a]] = set()
-    for b in range(a+1,partialLimit):
-        if isPrimePair(primeSet,primes[a],primes[b]):
-        primeLists[primes[a]].add(primes[b])
-    
-    # test values in the union of the pair sets until we have a candidate
-    #  quit as soon as the working quint sums larger than the smallest found quint
-    minSum = limit
-    for a in primes:
-    if a > minSum or a > partialLimit: 
-        break
-
-    for b in primeLists[a]:
-        if a+b > minSum:
-        break
-        workingB = primeLists[a] & primeLists[b]
-        for c in workingB:
-        if a+b+c > minSum:
-            break
-        workingC = primeLists[c] & workingB
-
-        for d in workingC:
-            if a+b+c+d > minSum:
-            break
-            workingD = primeLists[d] & workingC
-            for e in workingD:
-            if a+b+c+d+e > minSum:
-                break
-            minSum = a+b+c+d+e
-    return minSum
-
-if __name__ == '__main__':
-    print str(solve(None))
+def find_family():
+    for e in range(5,L):
+        for d in prime_twins[e] - {1,3}:
+            for c in (prime_twins[d] & prime_twins[e]) - {1}:
+                for b in (prime_twins[c] & prime_twins[d] & prime_twins[e]) - {1}:
+                    for a in prime_twins[b] & prime_twins[c] & prime_twins[d] & prime_twins[e]:
+                        return [primes[x] for x in [a, b, c, d, e]]
+prime_list = find_family()
+print str(sum(prime_list))
