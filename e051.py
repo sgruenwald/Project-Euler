@@ -1,63 +1,50 @@
-from itertools import *
-from bisect import bisect_left
+def rwh_primes2(n):
+    # http://stackoverflow.com/questions/2068372/fastest-way-to-list-all-primes-below-n-in-python/3035188#3035188
+    """ Input n>=6, Returns a list of primes, 2 <= p < n """
+    correction = (n%6>1)
+    n = {0:n,1:n-1,2:n+4,3:n+3,4:n+2,5:n+1}[n%6]
+    sieve = [1] * (n//3)
+    sieve[0] = 0
+    for i in xrange(int(n**0.5)//3+1):
+      if sieve[i]:
+        k=3*i+1|1
+        sieve[      ((k*k)//3)      ::2*k]=[0]*((n//6-(k*k)//6-1)//k+1)
+        sieve[(k*k+4*k-2*k*(i&1))//3::2*k]=[0]*((n//6-(k*k+4*k-2*k*(i&1))//6-1)//k+1)
+    return [2,3] + [3*i+1|1 for i in xrange(1,n//3-correction) if sieve[i]]
 
-def primes(n): 
-    if n==2: return [2]
-    elif n<2: return []
-    s=range(3,n+1,2)
-    mroot = n ** 0.5
-    half=(n+1)/2-1
-    i=0
-    m=3
-    while m <= mroot:
-        if s[i]:
-            j=(m*m-3)/2
-            s[j]=0
-            while j<half:
-                s[j]=0
-                j+=m
-        i=i+1
-        m=2*i+3
-    return [2]+[x for x in s if x]
+primes = rwh_primes2(230000)
 
-# sqrt(1000000000) = 31622
-__primes = primes(31622)
+def isprime(num):
+    sqrt_n = int(num**.5)
+    for p in primes:
+        if p > sqrt_n: return 1
+        if num % p == 0: return 0
+    return 1
 
-def is_prime(n):
-    # if prime is already in the list, just pick it
-    if n <= 31622:
-        i = bisect_left(__primes, n)
-        return i != len(__primes) and __primes[i] == n
-    # Divide by each known prime
-    limit = int(n ** .5)
-    for p in __primes:
-        if p > limit: return True
-        if n % p == 0: return False
-    # fall back on trial division if n > 1 billion
-    for f in range(31627, limit, 6): # 31627 is the next prime
-        if n % f == 0 or n % (f + 4) == 0:
-            return False
-    return True
-
-def number_families(num):
-    digits = [d for d in str(num)]
-    products = list(product((True, False), repeat=len(digits)))[1:-1]
-    for p in products:
-        pattern = ''
-        for i, x in enumerate(p):
-            if x:
-                pattern += digits[i]
-            else:
-                pattern += 'X'
-        yield [int(pattern.replace('X', str(n))) for n in range(10)]
+def check8(num):
+    nstr = str(num)
+    slist = list(nstr)
+    for old_d in ['0','1','2']:
+        if slist.count(old_d) >= 3:
+            counter, pnum = 10, [num]
+            for new_d in list('0123456789'):
+                if new_d != old_d:
+                    new_num = int(nstr.replace(old_d, new_d))
+                    if new_num < 10000 or not isprime(new_num):
+                        counter -= 1
+                        if counter<8: break
+                    else:
+                        pnum.append(new_num)
+            if counter >= 8: return pnum
+    return 0
 
 def main():
-    for prime in primes(1000000):
-        for number_family in number_families(prime):
-            prime_family = [n for n in number_family if is_prime(n) and len(str(n)) == len(str(prime))]
-            if len(prime_family) == 8 and prime in prime_family:
-                print prime
-                return
+    for p in primes:
+        if p < 10000: continue
+        result = check8(p)
+        if result:
+            break
+    print result[0]
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
