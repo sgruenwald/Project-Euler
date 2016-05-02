@@ -1,40 +1,42 @@
-def euler(n):
-    # Create a candidate list within which non-primes will
-    # marked as None, noting that only candidates below
-    # sqrt(n) need be checked. 
-    candidates = range(n+1)
-    fin = int(n**0.5)
- 
-    # Loop over the candidates, marking out each multiple.
-    # If the current candidate is already checked off then
-    # continue to the next iteration.
-    for i in xrange(2, fin+1):
-        if not candidates[i]:
-            continue
- 
-        candidates[2*i::i] = [None] * (n//i - 1)
- 
-    # Filter out non-primes and return the list.
-    return [i for i in candidates[2:] if i]
+def rwh_primes2(n):
+    # http://stackoverflow.com/questions/2068372/fastest-way-to-list-all-primes-below-n-in-python/3035188#3035188
+    """ Input n>=6, Returns a list of primes, 2 <= p < n """
+    correction = (n%6>1)
+    n = {0:n,1:n-1,2:n+4,3:n+3,4:n+2,5:n+1}[n%6]
+    sieve = [True] * (n//3)
+    sieve[0] = False
+    for i in xrange(int(n**0.5)//3+1):
+      if sieve[i]:
+        k=3*i+1|1
+        sieve[      ((k*k)//3)      ::2*k]=[False]*((n//6-(k*k)//6-1)//k+1)
+        sieve[(k*k+4*k-2*k*(i&1))//3::2*k]=[False]*((n//6-(k*k+4*k-2*k*(i&1))//6-1)//k+1)
+    return [2,3] + [3*i+1|1 for i in xrange(1,n//3-correction) if sieve[i]]
 
-def main():
-    primes = euler(1000000)
-    largest = 0
-    chain = []
-    for start in range(10):
-        seq = primes[start:]
-        i = 0
-        total = 0
-        for prime in seq:
-            total += prime
-            if total > 1000000:
-                break
-            i += 1
-            if total in primes:
-                c = seq[:i]
-                if len(c) > len(chain):
-                    chain = c
-    print sum(chain)
+LIMIT = 1000000
+primes = rwh_primes2(LIMIT)
+primes_set = set(primes)
+MAXPRIME = primes[-1]
 
-if __name__ == "__main__":
-    main()
+def isprime(n):
+    return n in primes_set
+
+def get_max_consecutive_prime():
+    maxlen, maxsum = 21, sum(primes[0: 21])
+    while maxsum < MAXPRIME:
+        maxlen += 1
+        maxsum += primes[maxlen]
+
+    if maxsum == MAXPRIME: return maxsum
+
+    while maxlen:
+        maxlen -= 1
+        maxsum = sum(primes[0: maxlen])
+        if maxsum > MAXPRIME: continue
+        if isprime(maxsum): return maxsum
+        for start in xrange(1, len(primes) - maxlen):
+            maxsum = maxsum - primes[start - 1] + primes[start + maxlen -1]
+            if maxsum > MAXPRIME: break
+            if isprime(maxsum): return maxsum
+    return -1
+
+print(get_max_consecutive_prime())
