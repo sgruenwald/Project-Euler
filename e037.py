@@ -1,66 +1,26 @@
-from collections import defaultdict
-import math
+from math import log10
 
-def factorize(n):
-    if n < 1:
-        raise ValueError('fact() argument should be >= 1')
-    if n == 1:
-        return []  # special case
-    res = []
-    # iterate over all even numbers first.
-    while n % 2 == 0:
-        res.append(2)
-        n //= 2
-    # try odd numbers up to sqrt(n)
-    limit = math.sqrt(n+1)
-    i = 3
-    while i <= limit:
-        if n % i == 0:
-            res.append(i)
-            n //= i
-            limit = math.sqrt(n+i)
-        else:
-            i += 2
-    if n != 1:
-        res.append(n)
-    return res
+def rwh_primes2(n):
+    correction = (n%6>1)
+    n = {0:n,1:n-1,2:n+4,3:n+3,4:n+2,5:n+1}[n%6]
+    sieve = [True] * (n/3)
+    sieve[0] = False
+    for i in xrange(int(n**0.5)/3+1):
+      if sieve[i]:
+        k=3*i+1|1
+        sieve[      ((k*k)/3)      ::2*k]=[False]*((n/6-(k*k)/6-1)/k+1)
+        sieve[(k*k+4*k-2*k*(i&1))/3::2*k]=[False]*((n/6-(k*k+4*k-2*k*(i&1))/6-1)/k+1)
+    return [2,3] + [3*i+1|1 for i in xrange(1,n/3-correction) if sieve[i]]
 
-def num_divisors(n):
-    factors = sorted(factorize(n))
-    histogram = defaultdict(int)
-    for factor in factors:
-        histogram[factor] += 1
-    # number of divisors is equal to product of 
-    # incremented exponents of prime factors
-    from operator import mul
-    try:
-        return reduce(mul, [exponent + 1 for exponent in histogram.values()])
-    except:
-        return 1
+primes = set(rwh_primes2(1000000))
+def check(p):
+    for i in xrange(1, int(log10(p)+1)):
+        if not (p / 10**i) in primes: return 0
+        if not (p % 10**i) in primes: return 0
+    return 1
 
-def is_prime(num):
-    if num_divisors(num) == 2 and num > 1:
-        return True
-    else:
-        return False
-
-def is_truncatable(prime):
-    if not is_prime(prime):
-        return False
-
-    digits = [int(digit) for digit in str(prime)]
-    if len(digits) == 1:
-        return False
-
-    for i in range(1, len(digits)):
-        left = int(''.join(str(digit) for digit in digits[:i]))
-        right = int(''.join(str(digit) for digit in digits[i:]))
-        if not is_prime(left) or not is_prime(right):
-            return False
-    return True
-
-def main():
-    print sum(n for n in range(1, 1000000) if is_truncatable(n))
-
-if __name__ == "__main__":
-    main()
+total = 0
+for p in primes:
+    if p < 10: continue
+    if check(p): total += p
+print total
