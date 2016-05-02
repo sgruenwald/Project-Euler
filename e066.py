@@ -15,11 +15,11 @@ def chakravala(N):
 def solve():
     maxX,maxD = 0,2
     for d in range (2,limit+1):
-    if int(sqrt(d))**2 != d:
-        x = chakravala(d)
-        if x > maxX:
-        maxX = x
-        maxD = d
+        if int(sqrt(d))**2 != d:
+            x = chakravala(d)
+            if x > maxX:
+                maxX = x
+                maxD = d
     return maxD
 
 if __name__ == '__main__':
