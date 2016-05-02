@@ -1,2 +1,7 @@
-d = [int(digit) for digit in ''.join((str(digit) for digit in range(1, 10000001)))]
-print d[0] * d[9] * d[99] * d[999] * d[9999] * d[99999] * d[999999]
+s = ""
+for i in xrange(1, 200000) :
+	s += str(i)
+
+i, j, k, l, m, n, o = int(s[1-1]), int(s[10-1]), int(s[100-1]), int(s[1000-1]), int(s[10*1000-1]), int(s[100*1000-1]), int(s[1000*1000-1])
+
+print i * j * k * l * m * n * o
