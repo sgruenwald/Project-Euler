@@ -10,4 +10,4 @@ while True:
     if ways[target] > L: break    
     target += 1
 
-print "First value written as the sum of primes \nin over", L, "ways:", target
+print target
